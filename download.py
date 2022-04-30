@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 # TODO: manually input PPID
             eeprom_cache:bytearray = b'H' # b'H\0\0\0\0\0lh\00047.104.141.250\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x07\x27'
             eeprom_cache += ppid
-            eeprom_cache += b'\0lh\0'
+            eeprom_cache += b'\0lh\0eSU\0'
             eeprom_cache += bytearray(download_config['server_addr'], encoding='utf-8')
             eeprom_cache += b'\0'*(65-len(download_config['server_addr']))
             # once server_addr contains non-ascii code, this length could be invalid
