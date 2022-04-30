@@ -1,0 +1,8 @@
+{
+    "serial_port": "COM6",
+    "serial_speed": 1500000,
+    "gen_ppid": true,
+    "ppid_start": [1, 1, 1, 1],
+    "server_addr": "47.104.141.250",
+    "server_port": 9991
+}
