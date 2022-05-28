@@ -5,7 +5,7 @@
 # import esptool
 import json, os
 
-ADDR_EEPROM = 0x9000
+ADDR_EEPROM = 0x3ff000
 ADDR_FW = 0x10000
 CONFIG_PATH = 'config.json'
 EEPROM_PATH = 'eeprom.bin'
@@ -87,11 +87,12 @@ def gen_ppid():
     return ppid
 
 if __name__ == '__main__':
-    with open('eeprom_init.bin', 'rb') as f:
-        eeprom_init = bytearray(f.read())
-    eeprom_head = eeprom_init[0:0x300]
-    eeprom_tail = eeprom_init[0x400:0x41f]
-    del eeprom_init
+    load_config()
+    # with open('eeprom_init.bin', 'rb') as f:
+    #     eeprom_init = bytearray(f.read())
+    # eeprom_head = eeprom_init[0:0x200]
+    # eeprom_tail = eeprom_init[0x400:0x41f]
+    # del eeprom_init
     try:
         while True:
             print('Generating virtual EEPROM.')
@@ -101,28 +102,29 @@ if __name__ == '__main__':
                 # TODO: manually input PPID
             eeprom_cache:bytearray = b'H' # b'H\0\0\0\0\0lh\00047.104.141.250\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x07\x27'
             eeprom_cache += ppid
-            eeprom_cache += b'\0lh\0eSU\0'
+            eeprom_cache += b'\0lmh\0eSUP\0O\x80'
+            eeprom_cache += download_config['server_port'].to_bytes(2, 'little')
             eeprom_cache += bytearray(download_config['server_addr'], encoding='utf-8')
             eeprom_cache += b'\0'*(65-len(download_config['server_addr']))
             # once server_addr contains non-ascii code, this length could be invalid
-            eeprom_cache += download_config['server_port'].to_bytes(2, 'little')
             with open('eeprom.bin', 'wb+') as f:
-                f.write(eeprom_head)
+                # f.write(eeprom_head)
+                # f.seek(0x300)
                 f.write(eeprom_cache)
-                f.seek(0x400)
-                f.write(eeprom_tail)
+                # f.seek(0x400)
+                # f.write(eeprom_tail)
             print('The device ID will be %02x%02x-%02x%02x' % (eeprom_cache[1], eeprom_cache[2], eeprom_cache[3], eeprom_cache[4]))
             input('Plug one PUMP device in and press ENTER to continue, or Ctrl-C to quit: ')
+            while os.system('python.exe .\\esptool.py -p %s -b %d write_flash 0x0 boot.bin 0x%x %s 0xa000 ota.bin 0x%x %s' % (
+                download_config['serial_port'], download_config['serial_speed'], ADDR_EEPROM, EEPROM_PATH, ADDR_FW, FW_PUMP_PATH
+            )):
+                try:
+                    input('Download failed! Press ENTER to continue, or Ctrl-C to skip: ')
+                except KeyboardInterrupt:
+                    print('cancelled.')
+                    break
+            ''' download by invoking esptool methods
             with open(EEPROM_PATH, 'rb') as f_eeprom, open(FW_PUMP_PATH, 'rb') as f_fw:
-                while os.system('python.exe .\\esptool.py -p %s -b %d write_flash 0x0 boot.bin 0x%x %s 0xa000 ota.bin 0x%x %s' % (
-                    download_config['serial_port'], download_config['serial_speed'], ADDR_EEPROM, EEPROM_PATH, ADDR_FW, FW_PUMP_PATH
-                )):
-                    try:
-                        input('Download failed! Press ENTER to continue, or Ctrl-C to skip: ')
-                    except KeyboardInterrupt:
-                        print('cancelled.')
-                        break
-                ''' download by invoking esptool methods
                 args = download_args([(ADDR_EEPROM, f_eeprom), (ADDR_FW, f_fw)])
                 # esp = esptool.ESPLoader.detect_chip(args.port, 115200, 'default_reset')
                 esp = esptool.ESP32ROM(download_config['serial_port'], 115200)
@@ -133,19 +135,19 @@ if __name__ == '__main__':
                 esptool.detect_flash_size(esp, args)
                 esp.flash_set_parameters(esptool.flash_size_bytes(args.flash_size))
                 esptool.write_flash(esp, args)
-                '''
+            '''
             input('Plug one TANK device in and press ENTER to continue, or Ctrl-C to quit: ')
-            with open(EEPROM_PATH, 'rb') as f_eeprom, open(FW_PUMP_PATH, 'rb') as f_fw:
-                while os.system('python.exe .\\esptool.py -p %s -b %d write_flash 0x0 boot.bin 0x%x %s 0xa000 ota.bin 0x%x %s' % (
-                    download_config['serial_port'], download_config['serial_speed'], ADDR_EEPROM, EEPROM_PATH, ADDR_FW, FW_TANK_PATH
-                )):
-                    try:
-                        input('Download failed! Press ENTER to continue, or Ctrl-C to skip: ')
-                    except KeyboardInterrupt:
-                        print('cancelled.')
-                        break
+            while os.system('python.exe .\\esptool.py -p %s -b %d write_flash 0x0 boot.bin 0x%x %s 0xa000 ota.bin 0x%x %s' % (
+                download_config['serial_port'], download_config['serial_speed'], ADDR_EEPROM, EEPROM_PATH, ADDR_FW, FW_TANK_PATH
+            )):
+                try:
+                    input('Download failed! Press ENTER to continue, or Ctrl-C to skip: ')
+                except KeyboardInterrupt:
+                    print('cancelled.')
+                    break
 
-                ''' download by invoking esptool methods
+            ''' download by invoking esptool methods
+            with open(EEPROM_PATH, 'rb') as f_eeprom, open(FW_PUMP_PATH, 'rb') as f_fw:
                 args = download_args([(ADDR_EEPROM, f_eeprom), (ADDR_FW, f_fw)])
                 esp = esptool.ESP32ROM(download_config['serial_port'], 115200)
                 esp.connect()
@@ -155,7 +157,7 @@ if __name__ == '__main__':
                 esptool.detect_flash_size(esp, args)
                 esp.flash_set_parameters(esptool.flash_size_bytes(args.flash_size))
                 esptool.write_flash(esp, args)
-                '''
+            '''
             input('Press ENTER to continue, or Ctrl-C to quit.')
     except KeyboardInterrupt:
         print('cancelled.')
