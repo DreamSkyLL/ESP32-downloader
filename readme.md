@@ -14,3 +14,14 @@
 | ppid_start | uint8 array[4] | 递增 PPID 的起始值，数组中每个值的范围是 1-254。 | [1, 1, 1, 1] |
 | server_addr | string | 服务器地址，域名或者 IPv4。 | 47.104.141.250 |
 | server_port | uint16 | 服务程序端口号。 | 9991 |
+
+将设备连接到下载器时，引脚对应关系如下表。
+
+| 设备引脚 | 下载器引脚 | 描述 | 备注 |
+| - | - | - | - |
+| VCC | 3V3 | 3.3VDC | 避免双电源供电 |
+| UART0_N | TXD | UART 3V3 |  |
+| UART0_P | RXD | UART 3V3 |  |
+| GND | GND | 公共地 |  |
+| MCU_RST | RTS | 复位 | 内置弱上拉 |
+| MCU_DLE | GPIO0 | 下载使能 |  |

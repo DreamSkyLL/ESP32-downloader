@@ -1,5 +1,5 @@
 {
-    "serial_port": "COM17",
+    "serial_port": "COM21",
     "serial_speed": 921600,
     "gen_ppid": true,
     "ppid_start": [1, 1, 1, 2],

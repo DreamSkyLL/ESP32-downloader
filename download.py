@@ -102,10 +102,11 @@ if __name__ == '__main__':
                 # TODO: manually input PPID
             eeprom_cache:bytearray = b'H' # b'H\0\0\0\0\0lh\00047.104.141.250\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x07\x27'
             eeprom_cache += ppid
-            eeprom_cache += b'\0lmh\0eSUP\0O\x80'
+            # eeprom_cache += b'\0lmh\0eSUP'
+            eeprom_cache += b'\0O\x02' # \x80
             eeprom_cache += download_config['server_port'].to_bytes(2, 'little')
             eeprom_cache += bytearray(download_config['server_addr'], encoding='utf-8')
-            eeprom_cache += b'\0'*(65-len(download_config['server_addr']))
+            eeprom_cache += b'\0' # *(65-len(download_config['server_addr']))
             # once server_addr contains non-ascii code, this length could be invalid
             with open('eeprom.bin', 'wb+') as f:
                 # f.write(eeprom_head)
